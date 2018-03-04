@@ -10,9 +10,10 @@ var WIN_TEXT_OPTIONS = [
 	"I'LL BUY YOU A BALLOON SON"
 ]
 
-var CANDIDATES = STATIC_CANDIDATES;
+// var CANDIDATES = STATIC_CANDIDATES;
+var CANDIDATES = generateJSON(10);
 var SCORE = 0;
-var TOTAL = 5;
+var TOTAL = 10;
 var ANSWERED = 0;
 var CURRENT_IS_JSON = false;
 var T_ID_QUESTION = 0;
@@ -40,10 +41,6 @@ function loadCandidates(fn) {
 	});
 }
 
-function takeRandom(arr) {
-	return arr.splice(Math.floor(Math.random() * arr.length), 1);
-}
-
 function gameOver() {
 	var elem = $("#field");
 	var percent = SCORE/TOTAL;
@@ -62,11 +59,9 @@ function gameOver() {
 function showCandidate() {
 	if (ANSWERED < TOTAL && CANDIDATES.length > 0) {
 		var item = takeRandom(CANDIDATES)[0];
+		console.log(item);
 		var candidate = item[0];
 		CURRENT_IS_JSON	= item[1];
-		if (CURRENT_IS_JSON) {
-			candidate = JSON.stringify(candidate);
-		}
 		$("#candidate").text(candidate);
 		return true;
 	} else {
