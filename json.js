@@ -216,6 +216,7 @@ function main() {
 		function() {},
 		function() {
 			GAME_STATE = 1;
+			$('#candidate').removeClass('shake');
 			gameLoop();
 		},
 		3
