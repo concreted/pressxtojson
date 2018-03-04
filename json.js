@@ -10,18 +10,23 @@ var WIN_TEXT_OPTIONS = [
 	"I'LL BUY YOU A BALLOON SON"
 ]
 
-// var CANDIDATES = STATIC_CANDIDATES;
-var CANDIDATES = generateJSON(10);
-var SCORE = 0;
-var TOTAL = 10;
-var ANSWERED = 0;
-var CURRENT_IS_JSON = false;
+var TOTAL_QUESTIONS = 10;
 var T_ID_QUESTION = 0;
 var INT_ID_CLOCK = 0;
 var TIME_ALLOWED = 5;
 var SECONDS_REMAINING = TIME_ALLOWED;
 var GAME_STATES = ['PRE', 'PLAY'];
 var GAME_STATE = 0;
+
+function initialize() {
+	CANDIDATES = generateJSON(TOTAL_QUESTIONS);
+	SCORE = 0;
+	ANSWERED = 0;
+	CURRENT_IS_JSON = false;
+}
+
+// var CANDIDATES = STATIC_CANDIDATES;
+initialize();
 
 // Use this to pull questions from external source
 function loadCandidates(fn) {
@@ -43,21 +48,21 @@ function loadCandidates(fn) {
 
 function gameOver() {
 	var elem = $("#field");
-	var percent = SCORE/TOTAL;
+	var percent = SCORE/TOTAL_QUESTIONS;
 	console.log(SCORE);
 	console.log(percent * 100.0 + "%");
 	if (percent >= 0.6) {
-		text = takeRandom(WIN_TEXT_OPTIONS);
+		text = pickRandom(WIN_TEXT_OPTIONS);
 		elem.addClass("win");
 	} else {
 		text = "JSON NOOO!!!";
 		elem.addClass('lose shake');
 	}
-	$('#candidate').html(text + '<br />' + SCORE + ' OUT OF ' + TOTAL + ' CORRECT');
+	$('#candidate').html(text + '<br />' + SCORE + ' OUT OF ' + TOTAL_QUESTIONS + ' CORRECT');
 }
 
 function showCandidate() {
-	if (ANSWERED < TOTAL && CANDIDATES.length > 0) {
+	if (ANSWERED < TOTAL_QUESTIONS && CANDIDATES.length > 0) {
 		var item = takeRandom(CANDIDATES)[0];
 		console.log(item);
 		var candidate = item[0];
@@ -99,13 +104,15 @@ function timedStateChange(loopConditionFn, loopCB, endCB, time_allowed) {
 }
 
 function gameLoop() {
+	GAME_STATE = 1;
 	timedStateChange(
 		showCandidate,
 		function() {
 			timeOver();
 			ANSWERED++;
 		}, function() {
-			$("#timer").html("")
+			$("#timer").html("");
+			$('#restart').removeClass('invisible');
 		},
 		TIME_ALLOWED)
 }
@@ -146,7 +153,7 @@ function pressButton(elem, correctFn, correctCB, inactiveFn, continueCB, audioCB
 }
 
 function isGameOver() {
-	return ANSWERED >= TOTAL || GAME_STATES[GAME_STATE] !== 'PLAY';
+	return ANSWERED >= TOTAL_QUESTIONS || GAME_STATES[GAME_STATE] !== 'PLAY';
 }
 
 function incrementScore() {
@@ -169,7 +176,7 @@ function pressX() {
 	)
 }
 
-function pressY() {
+function pressNo() {
 	return pressButton(
 		$(this),
 		function() { return !CURRENT_IS_JSON; },
@@ -180,6 +187,14 @@ function pressY() {
 	)
 }
 
+function pressRestart() {
+	$('#candidate').removeClass('shake');
+	$('#field').removeClass('win lose shake');
+	$('#restart').addClass('invisible');
+	initialize();
+	gameLoop();
+}
+
 function timeOver() {
 	buttonFlashRed($(".button"));
 }
@@ -188,12 +203,15 @@ function main() {
 	$("#titleText").html(takeRandom(TITLE_TEXT_OPTIONS))
 	$("#candidate").html(takeRandom(TITLE_TEXT_OPTIONS))
 	$("#xButton").click(pressX);
-	$("#yButton").click(pressY);
+	$("#noButton").click(pressNo);
+	$("#restartButton").click(pressRestart);
 	$(document).bind('keyup', function(e) {
 	  if (e.key === 'x') {
 	  	$('#xButton').click();
 	  } else if (e.key === 'b') {
-	  	$('#yButton').click();
+	  	$('#noButton').click();
+	  } else if (e.key === 'y') {
+	  	$('#restartButton').click();
 	  }
 	});
 	timedStateChange(
@@ -209,11 +227,7 @@ function main() {
 			};
 		}(),
 		function() {},
-		function() {
-			GAME_STATE = 1;
-			$('#candidate').removeClass('shake');
-			gameLoop();
-		},
+		pressRestart,
 		3
 	);
 }

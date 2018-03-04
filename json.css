@@ -18,6 +18,10 @@ Animations stolen from https://codepen.io/GhostRider/pen/FctLB
 	opacity: 0.25;
 }
 
+.invisible {
+	display: none !important;
+}
+
 .option {
 	font-size: 30px;
 	display: inline-block;
