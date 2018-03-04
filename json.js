@@ -47,12 +47,13 @@ function gameOver() {
 	console.log(SCORE);
 	console.log(percent * 100.0 + "%");
 	if (percent > 0.7) {
-		$("#candidate").text(takeRandom(WIN_TEXT_OPTIONS))
+		text = takeRandom(WIN_TEXT_OPTIONS);
 		elem.addClass("win");
 	} else {
-		$("#candidate").text("JSON NOOO!!!")
+		text = "JSON NOOO!!!";
 		elem.addClass('lose shake');
 	}
+	$('#candidate').html(text + '<br />' + SCORE + ' OUT OF ' + TOTAL + ' CORRECT');
 }
 
 function showCandidate() {
@@ -104,7 +105,16 @@ function buttonFlashRed(elem) {
 	elem.addClass("is-danger",200).removeClass("is-danger",200)
 }
 
+function playRandomAudio(name, count) {
+	var selection = Math.floor(Math.random() * count) + 1;
+	var filename = name + selection;
+	console.log(filename);
+	var audio = new Audio('audio/' + filename + '.wav');
+	audio.play();
+}
+
 function pressX() {
+	playRandomAudio('jason', 3);
 	if (ANSWERED >= TOTAL) { return; }
 	if (CURRENT_IS_JSON) {
 		SCORE++;
@@ -117,6 +127,7 @@ function pressX() {
 }
 
 function pressY() {
+	playRandomAudio('shaun', 3);
 	if (ANSWERED >= TOTAL) { return; }
 	if (!CURRENT_IS_JSON) {
 		SCORE++;
