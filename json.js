@@ -147,6 +147,13 @@ function main() {
 	$("#titleText").html(takeRandom(TITLE_TEXT_OPTIONS))
 	$("#xButton").click(pressX);
 	$("#yButton").click(pressY);
+	$(document).bind('keyup', function(e) {
+	  if (e.key === 'x') {
+	  	$('#xButton').click();
+	  } else if (e.key === 'b') {
+	  	$('#yButton').click();
+	  }
+	});
 	gameLoop();
 }
 
