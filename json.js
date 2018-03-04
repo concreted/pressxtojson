@@ -9,7 +9,7 @@ var WIN_TEXT_OPTIONS = [
 	"JSON, WAIT FOR YOUR DAD SON"
 ]
 
-var CANDIDATES = [];
+var CANDIDATES = STATIC_CANDIDATES;
 var SCORE = 0;
 var TOTAL = 5;
 var ANSWERED = 0;
@@ -19,7 +19,7 @@ var INT_ID_CLOCK = 0;
 var TIME_ALLOWED = 5;
 var SECONDS_REMAINING = TIME_ALLOWED;
 
-
+// Use this to pull questions from external source
 function loadCandidates(fn) {
 	console.log("hey")
 	$.ajax({
@@ -46,7 +46,7 @@ function gameOver() {
 	var percent = SCORE/TOTAL;
 	console.log(SCORE);
 	console.log(percent * 100.0 + "%");
-	if (percent > 0.7) {
+	if (percent >= 0.6) {
 		text = takeRandom(WIN_TEXT_OPTIONS);
 		elem.addClass("win");
 	} else {
@@ -150,4 +150,5 @@ function main() {
 	gameLoop();
 }
 
-loadCandidates(main);
+// loadCandidates(main);
+main();
