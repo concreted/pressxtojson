@@ -6,7 +6,8 @@ var TITLE_TEXT_OPTIONS = [
 
 var WIN_TEXT_OPTIONS = [
 	"JSON YOU REALLY SHOULDN'T WANDER OFF LIKE THAT YOU KNOW",
-	"JSON, WAIT FOR YOUR DAD SON"
+	"JSON, WAIT FOR YOUR DAD SON",
+	"I'LL BUY YOU A BALLOON SON"
 ]
 
 var CANDIDATES = STATIC_CANDIDATES;
@@ -18,6 +19,8 @@ var T_ID_QUESTION = 0;
 var INT_ID_CLOCK = 0;
 var TIME_ALLOWED = 5;
 var SECONDS_REMAINING = TIME_ALLOWED;
+var GAME_STATES = ['PRE', 'PLAY'];
+var GAME_STATE = 0;
 
 // Use this to pull questions from external source
 function loadCandidates(fn) {
@@ -72,29 +75,48 @@ function showCandidate() {
 	}
 }
 
+function timedStateChange(loopConditionFn, loopCB, endCB, time_allowed) {
+	var fn = function () {
+		clearTimeout(T_ID_QUESTION);
+		clearInterval(INT_ID_CLOCK);
+
+		SECONDS_REMAINING = time_allowed;
+		$("#timer").html(SECONDS_REMAINING);
+
+		next = loopConditionFn();
+
+		if (next) {
+			console.log('next');
+			T_ID_QUESTION = setTimeout(function () {
+				loopCB();
+				fn();
+			}, time_allowed * 1000);
+			INT_ID_CLOCK = setInterval(function () {
+				SECONDS_REMAINING--;
+				$("#timer").html(SECONDS_REMAINING);
+			}, 1000)
+		} else {
+			console.log('end');
+			endCB();
+		}
+	}
+	fn();
+}
+
 function gameLoop() {
-	clearTimeout(T_ID_QUESTION);
-	clearInterval(INT_ID_CLOCK);
-	SECONDS_REMAINING = TIME_ALLOWED;
-	$("#timer").html(SECONDS_REMAINING);
-
-	next = showCandidate();
-	if (next) {
-
-		T_ID_QUESTION = setTimeout(function() {
+	timedStateChange(
+		showCandidate,
+		function() {
 			timeOver();
 			ANSWERED++;
-			gameLoop();
-		}, TIME_ALLOWED * 1000);
+		}, function() {
+			$("#timer").html("")
+		},
+		TIME_ALLOWED)
+}
 
-
-		INT_ID_CLOCK = setInterval(function () {
-			SECONDS_REMAINING--;
-			$("#timer").html(SECONDS_REMAINING);
-		}, 1000)
-	} else {
-		$("#timer").html("")
-	}
+function buttonFlashSelect(elem) {
+	elem.addClass("is-dark",200).removeClass("is-dark",200);
 }
 
 function buttonFlashGreen(elem) {
@@ -113,30 +135,54 @@ function playRandomAudio(name, count) {
 	audio.play();
 }
 
-function pressX() {
-	playRandomAudio('jason', 3);
-	if (ANSWERED >= TOTAL) { return; }
-	if (CURRENT_IS_JSON) {
-		SCORE++;
-		buttonFlashGreen($(this));
-	} else {
-		buttonFlashRed($(this));
+function pressButton(elem, correctFn, correctCB, inactiveFn, continueCB, audioCB) {
+	audioCB();
+	if (inactiveFn()) {
+		buttonFlashSelect(elem);
+		return;
 	}
+	if (correctFn()) {
+		correctCB();
+		buttonFlashGreen(elem);
+	} else {
+		buttonFlashRed(elem);
+	}
+	continueCB();
+}
+
+function isGameOver() {
+	return ANSWERED >= TOTAL || GAME_STATES[GAME_STATE] !== 'PLAY';
+}
+
+function incrementScore() {
+	SCORE++;
+}
+
+function answerQuestion() {
 	ANSWERED++;
 	gameLoop();
 }
 
+function pressX() {
+	return pressButton(
+		$(this),
+		function() { return CURRENT_IS_JSON; },
+		incrementScore,
+		isGameOver,
+		answerQuestion,
+		function() { playRandomAudio('jason', 3); },
+	)
+}
+
 function pressY() {
-	playRandomAudio('shaun', 3);
-	if (ANSWERED >= TOTAL) { return; }
-	if (!CURRENT_IS_JSON) {
-		SCORE++;
-		buttonFlashGreen($(this));
-	} else {
-		buttonFlashRed($(this));
-	}
-	ANSWERED++;
-	gameLoop();
+	return pressButton(
+		$(this),
+		function() { return !CURRENT_IS_JSON; },
+		incrementScore,
+		isGameOver,
+		answerQuestion,
+		function() { playRandomAudio('shaun', 3); },
+	)
 }
 
 function timeOver() {
@@ -145,6 +191,7 @@ function timeOver() {
 
 function main() {
 	$("#titleText").html(takeRandom(TITLE_TEXT_OPTIONS))
+	$("#candidate").html(takeRandom(TITLE_TEXT_OPTIONS))
 	$("#xButton").click(pressX);
 	$("#yButton").click(pressY);
 	$(document).bind('keyup', function(e) {
@@ -154,7 +201,25 @@ function main() {
 	  	$('#yButton').click();
 	  }
 	});
-	gameLoop();
+	timedStateChange(
+		function() {
+			var once = false;
+			return function() {
+				if (!once) {
+					once = true;
+					return true;
+				} else {
+					return false;
+				}
+			};
+		}(),
+		function() {},
+		function() {
+			GAME_STATE = 1;
+			gameLoop();
+		},
+		3
+	);
 }
 
 // loadCandidates(main);
