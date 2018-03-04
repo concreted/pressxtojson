@@ -191,6 +191,7 @@ function pressRestart() {
 	$('#candidate').removeClass('shake');
 	$('#field').removeClass('win lose shake');
 	$('#restart').addClass('invisible');
+	$('#restartText').text('TRY AGAIN');
 	initialize();
 	gameLoop();
 }
@@ -214,22 +215,6 @@ function main() {
 	  	$('#restartButton').click();
 	  }
 	});
-	timedStateChange(
-		function() {
-			var once = false;
-			return function() {
-				if (!once) {
-					once = true;
-					return true;
-				} else {
-					return false;
-				}
-			};
-		}(),
-		function() {},
-		pressRestart,
-		3
-	);
 }
 
 // loadCandidates(main);
